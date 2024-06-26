@@ -11,6 +11,10 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Класс предоставляет методы для взаимодействия с API Честного знака.
+ * Поддерживает ограничение на количество запросов в заданное время.
+ */
 public class CrptApi {
 
     private static final String API_URL = "https://ismp.crpt.ru/api/v3/lk/documents/create";
@@ -21,6 +25,11 @@ public class CrptApi {
     private final int requestLimit;
     private final Duration duration;
 
+    /**
+     * @param timeUnit     Единица измерения времени для ограничения запросов (секунды, минуты и т.д.).
+     * @param requestLimit Максимальное количество запросов в заданном временном интервале.
+     * @throws IllegalArgumentException если requestLimit меньше или равен нулю, либо неподдерживаемый TimeUnit.
+     */
     public CrptApi(TimeUnit timeUnit, int requestLimit) {
         if (requestLimit <= 0) {
             throw new IllegalArgumentException("Invalid requestLimit, must be a positive number");
@@ -36,6 +45,12 @@ public class CrptApi {
         };
     }
 
+    /**
+     * Метод createIntroduceGoodsDocument выполняет запрос к API для создания документа ввода в оборот товара, произведенного в РФ.
+     *
+     * @param request Данные документа в виде объекта CreateGoodsDocumentRequest.
+     * @throws InterruptedException если поток был прерван во время ожидания доступа к API.
+     */
     public void createIntroduceGoodsDocument(CreateGoodsDocumentRequest request) throws InterruptedException {
         long now = System.nanoTime();
         long startWindow = now - duration.toNanos();
@@ -58,7 +73,7 @@ public class CrptApi {
             return;
         }
 
-        // Perform HTTP POST request
+        // Выполнение HTTP POST запроса
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .uri(URI.create(API_URL))
                 .header("Content-Type", "application/json")
@@ -76,6 +91,9 @@ public class CrptApi {
         }
     }
 
+    /**
+     * Класс CreateGoodsDocumentRequest представляет данные для создания документа ввода в оборот товара, произведенного в РФ.
+     */
     public static class CreateGoodsDocumentRequest {
         private String description;
         private String doc_id;
@@ -92,6 +110,9 @@ public class CrptApi {
         private String reg_number;
     }
 
+    /**
+     * Класс Product представляет данные о продукте для документа ввода в оборот товара, произведенного в РФ.
+     */
     public static class Product {
         private String certificate_document;
         private String certificate_document_date;
